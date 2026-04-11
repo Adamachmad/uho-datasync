@@ -21,6 +21,25 @@ class Pengaju extends Authenticatable
         'password' => 'hashed',
     ];
 
+    /**
+     * Override to disable remember_token functionality
+     * since pengaju table doesn't have this column
+     */
+    public function getRememberToken()
+    {
+        return null;
+    }
+
+    public function setRememberToken($value)
+    {
+        // Do nothing - this table doesn't have remember_token column
+    }
+
+    public function getRememberTokenName()
+    {
+        return null;
+    }
+
     // Relasi: Pengaju memiliki banyak Pengajuan
     public function pengajuans()
     {

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Pengaju;
 use App\Models\JenisDokumen;
 use App\Models\PengajuanHasDokumen;
@@ -11,12 +13,27 @@ use App\Models\Pengajuan;
 use App\Models\RiwayatPengajuan;
 use App\Models\StatusPengajuan;
 use App\Models\JenisPengajuan;
+use App\Models\SyaratPengajuan;
 
 class PengajuanController extends Controller
 {
+    private function getStatusIdByNama(string $namaStatus, ?int $fallback = null): int
+    {
+        return (int) (StatusPengajuan::where('nama_status', $namaStatus)->value('id') ?? $fallback);
+    }
+
+    private function getDraftStatusId(): int
+    {
+        return $this->getStatusIdByNama('Draft', 1);
+    }
+
     // ... (Fungsi index dan storeIdentitas TETAP SAMA seperti sebelumnya) ...
     public function index() {
-        return view('halaman_depan'); 
+        return view('halaman_depan');
+    }
+
+    public function register() {
+        return view('register');
     }
 
     public function storeIdentitas(Request $request) {
@@ -31,11 +48,26 @@ class PengajuanController extends Controller
             'no_hp' => ['required', 'max:15', 'regex:/^(\+62|62|0)\d{9,12}$/'], // Indonesian phone number
             'password' => ['required', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/'] // At least 8 chars with upper, lower, digit
         ], [
+            'nik.required' => 'NIK harus diisi.',
             'nik.digits' => 'NIK harus terdiri dari 16 angka.',
+            'nim.required' => 'NIM harus diisi.',
+            'nim.max' => 'NIM maksimal 20 karakter.',
             'nim.alpha_num' => 'NIM hanya boleh berisi huruf dan angka.',
+            'nama_lengkap.required' => 'Nama lengkap harus diisi.',
+            'nama_lengkap.max' => 'Nama lengkap maksimal 100 karakter.',
+            'alamat.required' => 'Alamat harus diisi.',
+            'alamat.max' => 'Alamat maksimal 255 karakter.',
+            'jurusan.required' => 'Jurusan harus diisi.',
+            'jurusan.max' => 'Jurusan maksimal 50 karakter.',
+            'email.required' => 'Email harus diisi.',
+            'email.email' => 'Email harus format yang valid (contoh: user@email.com).',
+            'email.max' => 'Email maksimal 100 karakter.',
+            'no_hp.required' => 'Nomor HP harus diisi.',
+            'no_hp.max' => 'Nomor HP maksimal 15 karakter.',
             'no_hp.regex' => 'Nomor HP harus dimulai dengan +62, 62, atau 0 dilanjutkan 9-12 angka.',
-            'password.regex' => 'Password harus mengandung kombinasi huruf besar, huruf kecil, dan angka (min 8 karakter).',
-            'email.email' => 'Email harus format yang valid.',
+            'password.required' => 'Password harus diisi.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'password.regex' => 'Password harus mengandung kombinasi huruf besar, huruf kecil, dan angka.',
         ]);
 
         try {
@@ -61,17 +93,15 @@ class PengajuanController extends Controller
             return back()->withErrors(['error' => 'Terjadi kesalahan sistem saat menyimpan data.'])->withInput();
         }
 
-        return redirect()->route('dashboard', ['nik' => $pengaju->nik]);
+        // ===== FIX: Auto-login setelah registrasi =====
+        Auth::guard('pengaju')->login($pengaju);
+        
+        return redirect()->route('dashboard');
     }
 
     // --- UPDATE DI SINI ---
     public function dashboard($nik) {
-        // ===== FIX BUG #1: Add authorization check =====
-        // Verify user is logged in and accessing their own data
-        if (!auth()->guard('pengaju')->check()) {
-            return redirect()->route('home')->with('error', 'Anda harus login terlebih dahulu.');
-        }
-
+        // Middleware pengaju.auth already checks authentication
         $pengaju = Pengaju::where('nik', $nik)->firstOrFail();
         
         // ===== SECURITY: Check if current user owns this data =====
@@ -87,6 +117,20 @@ class PengajuanController extends Controller
                             ->get(); 
         
         $pengajuanAktif = Pengajuan::where('id_pengaju', $pengaju->id)->latest()->first();
+        $draftStatusId = $this->getDraftStatusId();
+
+        $pengajuanDraft = Pengajuan::where('id_pengaju', $pengaju->id)
+            ->where('id_status_pengajuan', $draftStatusId)
+            ->latest()
+            ->first();
+
+        $dokumenDiunggah = collect();
+        if ($pengajuanDraft) {
+            $dokumenDiunggah = PengajuanHasDokumen::where('id_pengajuan', $pengajuanDraft->id)
+                ->with('jenisDokumen')
+                ->latest()
+                ->get();
+        }
 
         $riwayat = [];
         if($pengajuanAktif) {
@@ -96,7 +140,7 @@ class PengajuanController extends Controller
                         ->get();
         }
 
-        return view('dashboard', compact('pengaju', 'jenisDokumen', 'jenisPengajuan', 'pengajuanAktif', 'riwayat'));
+        return view('dashboard', compact('pengaju', 'jenisDokumen', 'jenisPengajuan', 'pengajuanAktif', 'pengajuanDraft', 'dokumenDiunggah', 'riwayat'));
     }
 
     public function uploadDokumen(Request $request) {
@@ -104,12 +148,24 @@ class PengajuanController extends Controller
             'file' => 'required|mimes:pdf,jpg,jpeg|max:2048',
             'id_jenis_dokumen' => 'required',
             'id_pengaju' => 'required'
+        ], [
+            'file.required' => 'File harus diunggah.',
+            'file.mimes' => 'Format file hanya boleh PDF atau JPG/JPEG.',
+            'file.max' => 'Ukuran file maksimal 2 MB.',
+            'id_jenis_dokumen.required' => 'Jenis dokumen harus dipilih.',
+            'id_pengaju.required' => 'Data pengaju tidak valid.',
         ]);
+
+        if ((int) $request->id_pengaju !== (int) Auth::guard('pengaju')->id()) {
+            abort(403, 'Akses tidak valid untuk upload dokumen.');
+        }
 
         // ===== FIX BUG #5: Ensure only one draft pengajuan per user =====
         // Look for existing draft (status 1) for this user
+        $draftStatusId = $this->getDraftStatusId();
+
         $pengajuan = Pengajuan::where('id_pengaju', $request->id_pengaju)
-            ->where('id_status_pengajuan', 1)
+            ->where('id_status_pengajuan', $draftStatusId)
             ->first();
 
         // Create new draft only if none exists
@@ -117,13 +173,13 @@ class PengajuanController extends Controller
             $pengajuan = Pengajuan::create([
                 'id_pengaju' => $request->id_pengaju,
                 'id_jenis_pengajuan' => 1,
-                'id_status_pengajuan' => 1,
+                'id_status_pengajuan' => $draftStatusId,
                 'keterangan_user' => 'Draft Upload'
             ]);
         }
 
         // ===== FIX BUG #13: Cek status sebelum upload =====
-        if ($pengajuan->id_status_pengajuan != 1) {
+        if ((int) $pengajuan->id_status_pengajuan !== (int) $draftStatusId) {
             return back()->with('error', '❌ Tidak bisa mengupload dokumen setelah pengajuan dikirim. Status saat ini: ' . $pengajuan->status_pengajuan->nama_status);
         }
 
@@ -142,6 +198,17 @@ class PengajuanController extends Controller
         
         $path = $file->storeAs('uploads', $filename, 'public');
 
+        $existing = PengajuanHasDokumen::where('id_pengajuan', $pengajuan->id)
+            ->where('id_jenis_dokumen', $request->id_jenis_dokumen)
+            ->first();
+
+        if ($existing) {
+            if ($existing->path_file && Storage::disk('public')->exists($existing->path_file)) {
+                Storage::disk('public')->delete($existing->path_file);
+            }
+            $existing->delete();
+        }
+
         PengajuanHasDokumen::create([
             'id_pengajuan' => $pengajuan->id,
             'id_jenis_dokumen' => $request->id_jenis_dokumen,
@@ -151,6 +218,27 @@ class PengajuanController extends Controller
         ]);
 
         return back()->with('success', '✅ Dokumen berhasil diupload');
+    }
+
+    public function hapusDokumen($id)
+    {
+        $dokumen = PengajuanHasDokumen::with('pengajuan')->findOrFail($id);
+
+        if (!$dokumen->pengajuan || $dokumen->pengajuan->id_pengaju != Auth::guard('pengaju')->id()) {
+            abort(403, 'Anda tidak memiliki akses untuk menghapus dokumen ini.');
+        }
+
+        if ((int) $dokumen->pengajuan->id_status_pengajuan !== (int) $this->getDraftStatusId()) {
+            return back()->with('error', 'Dokumen tidak bisa dihapus karena pengajuan sudah dikirim.');
+        }
+
+        if ($dokumen->path_file && Storage::disk('public')->exists($dokumen->path_file)) {
+            Storage::disk('public')->delete($dokumen->path_file);
+        }
+
+        $dokumen->delete();
+
+        return back()->with('success', 'Dokumen berhasil dihapus.');
     }
 
     /**
@@ -196,6 +284,17 @@ class PengajuanController extends Controller
             return back()->with('error', 'Data pengajuan tidak ditemukan.');
         }
 
+        if ($pengajuan->id_pengaju != Auth::guard('pengaju')->id()) {
+            abort(403, 'Anda tidak berhak mengirim pengajuan ini.');
+        }
+
+        $draftStatusId = $this->getDraftStatusId();
+        $terkirimPustikId = $this->getStatusIdByNama(StatusPengajuan::TERKIRIM_PUSTIK, 2);
+
+        if ((int) $pengajuan->id_status_pengajuan !== (int) $draftStatusId) {
+            return back()->with('error', 'Pengajuan ini bukan draft dan tidak bisa dikirim ulang.');
+        }
+
         // ===== VALIDASI BARU: CEK DOKUMEN WAJIB =====
         $validationErrors = $this->validateRequiredDocuments(
             $request->id_pengajuan, 
@@ -206,19 +305,20 @@ class PengajuanController extends Controller
             return back()->with('error', 'Pengajuan gagal! ' . implode(' ', $validationErrors))->withInput();
         }
 
-        // Update Status jadi "Diajukan ke UPA TIK" (ID 2)
-        // Dan update jenis perubahan sesuai pilihan user
+        // Update status awal alur resmi: TERKIRIM_PUSTIK
         $pengajuan->update([
-            'id_status_pengajuan' => 2, 
+            'id_status_pengajuan' => $terkirimPustikId,
             'id_jenis_pengajuan' => $request->id_jenis_pengajuan,
-            'keterangan_user' => $request->keterangan_user
+            'keterangan_user' => $request->keterangan_user,
+            'keterangan_penolakan' => null,
         ]);
 
         // Catat Riwayat
         RiwayatPengajuan::create([
             'id_pengajuan' => $pengajuan->id,
-            'id_status_pengajuan' => 2,
-            'catatan' => 'Mahasiswa mengirim pengajuan perubahan data.',
+            'id_status_pengajuan' => $terkirimPustikId,
+            'catatan' => StatusPengajuan::LABELS[StatusPengajuan::TERKIRIM_PUSTIK] ?? 'Mahasiswa mengirim pengajuan perubahan data.',
+            'keterangan_penolakan' => null,
             'created_by' => 'Mahasiswa'
         ]);
 

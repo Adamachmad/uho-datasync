@@ -9,8 +9,13 @@ class Pengajuan extends Model
     // Pastikan nama tabel benar (singular)
     protected $table = 'pengajuan'; 
 
-    // Izinkan semua kolom diisi
-    protected $guarded = [];
+    protected $fillable = [
+        'id_pengaju',
+        'id_jenis_pengajuan',
+        'id_status_pengajuan',
+        'keterangan_user',
+        'keterangan_penolakan',
+    ];
 
     // --- RELASI PENTING (INI PENYEBAB ERRORNYA) ---
 
@@ -37,5 +42,10 @@ class Pengajuan extends Model
     public function pengaju()
     {
         return $this->belongsTo(Pengaju::class, 'id_pengaju');
+    }
+
+    public function riwayat()
+    {
+        return $this->hasMany(RiwayatPengajuan::class, 'id_pengajuan');
     }
 }

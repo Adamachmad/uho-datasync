@@ -16,8 +16,10 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $pengaju = Auth::guard('pengaju')->user();
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $pengaju,
         ]);
     }
 
@@ -26,13 +28,10 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $pengaju = Auth::guard('pengaju')->user();
+        $pengaju->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
-        $request->user()->save();
+        $pengaju->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -43,12 +42,12 @@ class ProfileController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+            'password' => ['required', 'current_password:pengaju'],
         ]);
 
-        $user = $request->user();
+        $user = Auth::guard('pengaju')->user();
 
-        Auth::logout();
+        Auth::guard('pengaju')->logout();
 
         $user->delete();
 

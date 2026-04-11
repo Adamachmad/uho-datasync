@@ -2,6 +2,9 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
+    <!-- Alert Notifications -->
+    <x-alert-notification />
+
     <form method="POST" action="{{ route('login') }}">
         @csrf
 

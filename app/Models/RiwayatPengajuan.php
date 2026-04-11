@@ -9,8 +9,13 @@ class RiwayatPengajuan extends Model
     // Pastikan nama tabel benar
     protected $table = 'riwayat_pengajuan'; 
 
-    // Izinkan semua kolom diisi
-    protected $guarded = [];
+    protected $fillable = [
+        'id_pengajuan',
+        'id_status_pengajuan',
+        'catatan',
+        'keterangan_penolakan',
+        'created_by',
+    ];
 
     // --- RELASI PENTING (INI YANG HILANG) ---
 

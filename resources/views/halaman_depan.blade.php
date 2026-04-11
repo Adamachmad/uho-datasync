@@ -3,40 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lapor PDDIKTI - Data Diri</title>
+    <title>UHO-Datasync - Universitas Halu Oleo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
+
     <style>
-        body { background-color: #f0f2f5; }
-        .card-header { background: linear-gradient(45deg, #0d6efd, #0a58ca); color: white; }
-        .required::after { content: " *"; color: red; }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .hero-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-custom {
+            background: linear-gradient(45deg, #0d6efd, #0a58ca);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .navbar-brand img {
+            height: 40px;
+            width: auto;
+        }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-5">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-transparent mb-5">
         <div class="container">
-            <span class="navbar-brand mb-0 h1"><i class="bi bi-mortarboard-fill"></i> Sistem Lapor PDDIKTI</span>
+            <a href="{{ route('home') }}" class="navbar-brand mb-0 h1" style="text-decoration: none; color: white;">
+                <img src="{{ asset('storage/Logo-UHO-Normal-1.png') }}" alt="UHO Logo">
+                <span>UHO-Datasync</span>
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a href="#tentang" class="nav-link">Tentang</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#fitur" class="nav-link">Fitur</a>
+                    </li>
                     @if (Route::has('login'))
-                        @auth
+                        @auth('pengaju')
                             <li class="nav-item">
-                                <a href="{{ url('/dashboard-old') }}" class="nav-link">Dashboard</a>
+                                <a href="{{ route('dashboard') }}" class="nav-link btn btn-custom text-white ms-2">Dashboard</a>
                             </li>
                         @else
                             <li class="nav-item">
-                                <a href="{{ route('login') }}" class="nav-link">Log in</a>
+                                <a href="{{ route('login') }}" class="nav-link btn btn-outline-light ms-2">Login</a>
                             </li>
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a href="{{ route('register') }}" class="nav-link">Register Admin</a>
-                                </li>
-                            @endif
                         @endauth
                     @endif
                 </ul>
@@ -44,113 +91,153 @@
         </div>
     </nav>
 
-    <div class="container mb-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card shadow-lg border-0">
-                    <div class="card-header py-3 text-center">
-                        <h4 class="mb-0">Identitas Pengaju</h4>
-                        <small>Silakan lengkapi data diri dan password untuk akses dashboard.</small>
-                    </div>
-                    
-                    <div class="card-body p-4">
-                        <form action="{{ route('identitas.store') }}" method="POST">
-                            @csrf
+    <!-- Alert Notifications -->
+    <div class="container mt-3">
+        @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Kesalahan Input Data</strong>
+                <ul class="mt-2 mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
 
-                            <h6 class="text-primary mb-3"><i class="bi bi-person-lock"></i> Akun & Validasi</h6>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label required">NIK (KTP)</label>
-                                    <input type="text" name="nik" class="form-control" 
-                                           placeholder="16 Digit Angka" 
-                                           required 
-                                           maxlength="16" 
-                                           minlength="16"
-                                           inputmode="numeric" 
-                                           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                                    <small class="text-muted" style="font-size: 11px">Wajib 16 digit angka.</small>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label required">Password</label>
-                                    <input type="password" name="password" class="form-control" placeholder="Buat password login" required>
-                                                                        <small class="text-muted" style="font-size: 11px">Minimal 8 karakter dengan kombinasi huruf besar, kecil, dan angka.</small>
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
 
-                                </div>
-                            </div>
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+    </div>
 
-                            <hr>
-
-                            <h6 class="text-primary mb-3"><i class="bi bi-mortarboard"></i> Data Akademik</h6>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label required">Nama Lengkap</label>
-                                    <input type="text" name="nama_lengkap" class="form-control" placeholder="Sesuai KTM" required maxlength="100">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label required">NIM</label>
-                                    <input type="text" name="nim" class="form-control" placeholder="Contoh: F1G1..." required maxlength="20">
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label required">Jurusan / Program Studi</label>
-                                <input type="text" name="jurusan" class="form-control" placeholder="Contoh: Teknik Informatika" required maxlength="50">
-                            </div>
-
-                            <hr>
-
-                            <h6 class="text-primary mb-3"><i class="bi bi-telephone"></i> Kontak & Domisili</h6>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label required">Email Aktif</label>
-                                    <input type="email" name="email" class="form-control" placeholder="email@uho.ac.id" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label required">No. HP / WhatsApp</label>
-                                    <input type="text" name="no_hp" class="form-control" 
-                                           placeholder="08..." 
-                                           required 
-                                           maxlength="15"
-                                           inputmode="numeric"
-                                           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="form-label required">Alamat Lengkap</label>
-                                <textarea name="alamat" class="form-control" rows="2" placeholder="Jalan, Kelurahan, Kecamatan..." required></textarea>
-                            </div>
-
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg fw-bold">
-                                    Simpan & Lanjut <i class="bi bi-arrow-right"></i>
-                                </button>
-                            </div>
-                        </form>
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-10">
+                <div class="hero-section p-5 text-center text-white">
+                    <h1 class="display-4 fw-bold mb-3">
+                        <i class="bi bi-university me-3"></i>
+                        UHO-Datasync
+                    </h1>
+                    <p class="lead mb-4 fs-5">
+                        Universitas Halu Oleo (UHO) - Platform terintegrasi untuk pengelolaan dan pelaporan data akademik mahasiswa
+                    </p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        @auth('pengaju')
+                            <a href="{{ route('dashboard') }}" class="btn btn-custom btn-lg">
+                                <i class="bi bi-speedometer2 me-2"></i>Akses Dashboard
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="btn btn-light btn-lg">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Masuk Sistem
+                            </a>
+                            <a href="{{ route('daftar') }}" class="btn btn-outline-light btn-lg">
+                                <i class="bi bi-person-plus me-2"></i>Daftar Baru
+                            </a>
+                        @endauth
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Features Section -->
+        <div id="fitur" class="row g-4 mb-5">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card p-4 text-center h-100">
+                    <div class="mb-3">
+                        <i class="bi bi-person-check-fill text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Registrasi Data Diri</h5>
+                    <p class="text-muted">
+                        Lengkapi data identitas mahasiswa dengan validasi yang ketat untuk memastikan keakuratan data akademik.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card p-4 text-center h-100">
+                    <div class="mb-3">
+                        <i class="bi bi-file-earmark-text-fill text-success" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Upload Dokumen</h5>
+                    <p class="text-muted">
+                        Unggah berbagai dokumen pendukung dengan batasan ukuran dan format yang telah ditentukan.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card p-4 text-center h-100">
+                    <div class="mb-3">
+                        <i class="bi bi-graph-up-arrow text-info" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Monitoring Status</h5>
+                    <p class="text-muted">
+                        Pantau status pengajuan secara real-time dengan riwayat lengkap dan notifikasi perubahan.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div id="tentang" class="row justify-content-center mb-5">
+            <div class="col-lg-8">
+                <div class="feature-card p-5 text-center">
+                    <h3 class="fw-bold mb-4 text-primary">Tentang Sistem</h3>
+                    <p class="lead text-muted mb-4" style="text-align: justify;">
+                        Era transformasi digital menuntut institusi pendidikan tinggi untuk terus berinovasi dalam mengelola administrasi akademik yang efisien, transparan, dan akuntabel. Pangkalan Data Pendidikan Tinggi (PDDIKTI) pusat merupakan pusat rujukan data nasional yang memegang peranan vital dalam memastikan keabsahan status akademik seorang mahasiswa. Validitas data di PDDIKTI sangat menentukan berbagai aspek krusial dalam siklus kehidupan akademik mahasiswa, mulai dari pendaftaran beasiswa, validasi ijazah, pendaftaran program Kampus Merdeka, hingga persyaratan seleksi Calon Pegawai Negeri Sipil (CPNS). Oleh karena itu, ketidaksesuaian data akademik yang disebabkan oleh kesalahan proses manual konvensional dapat berdampak fatal bagi mahasiswa.
+                    </p>
+                    <p class="lead text-muted mb-4" style="text-align: justify;">
+                        Di Universitas Halu Oleo (UHO), Unit Penunjang Akademik Teknologi Informasi dan Komunikasi (UPA TIK) adalah muara dari seluruh proses perbaikan data mahasiswa sebelum disinkronisasikan ke PDDIKTI pusat. UHO-Datasync hadir sebagai platform terintegrasi untuk mendigitalisasi proses pelayanan ini secara 'end-to-end'. Melalui implementasi fitur manajemen dokumen dinamis yang menyeleksi kelengkapan berkas prasyarat secara otomatis sesuai kategori permohonan, serta dilengkapi dengan dasbor pemantauan real-time bagi mahasiswa, UHO-Datasync mentransformasi birokrasi manual menjadi alur kerja digital yang terukur dan akuntabel. Kehadiran aplikasi ini mempercepat proses sinkronisasi data kementerian guna mendukung perwujudan visi smart campus di Universitas Halu Oleo.
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="bi bi-shield-check text-success" style="font-size: 2rem;"></i>
+                                <h6 class="mt-2">Data Aman</h6>
+                                <small class="text-muted">Enkripsi dan validasi ketat</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="bi bi-clock-history text-primary" style="font-size: 2rem;"></i>
+                                <h6 class="mt-2">Real-time</h6>
+                                <small class="text-muted">Update status instan</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="bi bi-people-fill text-warning" style="font-size: 2rem;"></i>
+                                <h6 class="mt-2">User Friendly</h6>
+                                <small class="text-muted">Interface intuitif</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-white-50 py-4">
+            <div class="container">
+                <p class="mb-2">
+                    <strong>Universitas Halu Oleo</strong> - Sistem Informasi Akademik
+                </p>
+                <small>&copy; 2024 Universitas Halu Oleo. All rights reserved.</small>
+            </div>
+        </footer>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    @if ($errors->any())
-        <script>
-            let errorList = '';
-            @foreach ($errors->all() as $error)
-                errorList += '<li>{{ $error }}</li>';
-            @endforeach
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Validasi Gagal',
-                html: '<ul style="text-align: left; margin-bottom: 0;">' + errorList + '</ul>',
-                confirmButtonText: 'Tutup',
-                confirmButtonColor: '#0d6efd'
-            });
-        </script>
-    @endif
 </body>
 </html>
