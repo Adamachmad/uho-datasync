@@ -1,0 +1,21 @@
+includes:
+    - vendor/phpstan/phpstan-laravel/extension.neon
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - routes
+        - config
+        - database/migrations
+        - database/seeders
+    
+    level: 5
+    
+    reportUnmatchedIgnoredErrors: false
+    
+    ignoreErrors:
+        - '#Call to an undefined method#'
+        - '#Access to an undefined property#'
+        - '#Undefined variable:#'
+        - '#Call to an undefined static method#'

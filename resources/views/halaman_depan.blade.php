@@ -15,9 +15,32 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-dark bg-primary shadow-sm mb-5">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-5">
         <div class="container">
             <span class="navbar-brand mb-0 h1"><i class="bi bi-mortarboard-fill"></i> Sistem Lapor PDDIKTI</span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    @if (Route::has('login'))
+                        @auth
+                            <li class="nav-item">
+                                <a href="{{ url('/dashboard-old') }}" class="nav-link">Dashboard</a>
+                            </li>
+                        @else
+                            <li class="nav-item">
+                                <a href="{{ route('login') }}" class="nav-link">Log in</a>
+                            </li>
+                            @if (Route::has('register'))
+                                <li class="nav-item">
+                                    <a href="{{ route('register') }}" class="nav-link">Register Admin</a>
+                                </li>
+                            @endif
+                        @endauth
+                    @endif
+                </ul>
+            </div>
         </div>
     </nav>
 
@@ -31,16 +54,6 @@
                     </div>
                     
                     <div class="card-body p-4">
-                        @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <ul class="mb-0">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
                         <form action="{{ route('identitas.store') }}" method="POST">
                             @csrf
 
@@ -60,6 +73,8 @@
                                 <div class="col-md-6">
                                     <label class="form-label required">Password</label>
                                     <input type="password" name="password" class="form-control" placeholder="Buat password login" required>
+                                                                        <small class="text-muted" style="font-size: 11px">Minimal 8 karakter dengan kombinasi huruf besar, kecil, dan angka.</small>
+
                                 </div>
                             </div>
 
@@ -119,5 +134,23 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    @if ($errors->any())
+        <script>
+            let errorList = '';
+            @foreach ($errors->all() as $error)
+                errorList += '<li>{{ $error }}</li>';
+            @endforeach
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Validasi Gagal',
+                html: '<ul style="text-align: left; margin-bottom: 0;">' + errorList + '</ul>',
+                confirmButtonText: 'Tutup',
+                confirmButtonColor: '#0d6efd'
+            });
+        </script>
+    @endif
 </body>
 </html>

@@ -33,3 +33,6 @@ Saat ini kita sudah memiliki rancangan struktur database mentah (berupa file SQL
 - **Tipe Data**:
   - Perhatikan kolom `nim` di tabel `pengaju` bertipe `varchar(20)`. Gunakan tipe `string` di Laravel, jangan gunakan `integer`.
 - **Persiapan Autentikasi (Login Page)**: Sistem ini nantinya membutuhkan halaman *Login*. Mahasiswa kemungkinan akan login menggunakan data di tabel `pengaju`. Namun perhatikan juga apakah admin Pustik menggunakan tabel `users` bawaan Laravel. Pastikan kedua tabel tersebut (`users` dan `pengaju`) dipersiapkan migration-nya dengan benar agar bisa disesuaikan dengan fitur Laravel Authentication/Guards nanti.
+
+## Instruksi untuk AI Junior Programmer
+Tolong kerjakan semua checklist di atas (Technical Tasks & Acceptance Criteria). Lakukan perbaikan pada file-file migrasi, model, dan seeder yang ada agar strukturnya sesuai dengan `pustik_pddikti_db.sql` dan ikuti semua konvensi yang sudah dijelaskan di bagian "Notes for Junior". Jangan ragu untuk membuat atau memperbarui file yang diperlukan.

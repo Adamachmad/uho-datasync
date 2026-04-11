@@ -40,6 +40,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'pengaju' => [
+            'driver' => 'session',
+            'provider' => 'pengajus',
+        ],
     ],
 
     /*
@@ -65,10 +70,10 @@ return [
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'pengajus' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Pengaju::class,
+        ],
     ],
 
     /*

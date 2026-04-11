@@ -9,26 +9,29 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up(): void
-{
-    Schema::create('pengajuan', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('id_pengaju')->constrained('pengaju')->onDelete('cascade');
-        $table->foreignId('id_jenis_pengajuan')->constrained('jenis_pengajuan')->onDelete('cascade');
-        
-        // Relasi ke tabel Status (Bukan Enum lagi)
-        $table->foreignId('id_status_pengajuan')->constrained('status_pengajuan');
-        
-        $table->text('keterangan_user')->nullable();
-        $table->timestamps();
-    });
-}
+    public function up(): void
+    {
+        Schema::create('pengajuan', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('id_pengaju');
+            $table->foreign('id_pengaju')->references('id')->on('pengaju')->onDelete('cascade');
+            
+            $table->unsignedBigInteger('id_jenis_pengajuan');
+            $table->foreign('id_jenis_pengajuan')->references('id')->on('jenis_pengajuan')->onDelete('cascade');
+            
+            $table->unsignedBigInteger('id_status_pengajuan');
+            $table->foreign('id_status_pengajuan')->references('id')->on('status_pengajuan');
+            
+            $table->text('keterangan_user')->nullable();
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('pengajuans');
+        Schema::dropIfExists('pengajuan');
     }
 };

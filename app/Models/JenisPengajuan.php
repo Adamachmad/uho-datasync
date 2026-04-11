@@ -17,4 +17,10 @@ class JenisPengajuan extends Model
     {
         return $this->hasMany(SyaratPengajuan::class, 'id_jenis_pengajuan');
     }
+
+    // Relasi: Jenis Pengajuan memiliki banyak Pengajuan
+    public function pengajuans()
+    {
+        return $this->hasMany(Pengajuan::class, 'id_jenis_pengajuan');
+    }
 }

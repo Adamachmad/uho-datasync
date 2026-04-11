@@ -9,32 +9,26 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
-{
-    Schema::create('pengaju', function (Blueprint $table) {
-        $table->id();
-        // Identitas & Akun
-        $table->string('nik', 16)->unique(); // WAJIB: 16 Digit
-        $table->string('nim', 20)->unique();
-        $table->string('email')->unique();   // REVISI: Tambah Email
-        $table->string('password');          // REVISI: Tambah Password
-        
-        // Data Diri
-        $table->string('nama_lengkap');
-        $table->string('jurusan');
-        $table->text('alamat');              // REVISI: Tambah Alamat
-        $table->string('no_hp');
-        
-        $table->timestamps();
-    });
-}
-    
+    public function up(): void
+    {
+        Schema::create('pengaju', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama_lengkap', 255);
+            $table->string('nim', 20)->unique();
+            $table->string('nik', 20)->nullable();
+            $table->string('email', 255)->unique();
+            $table->string('no_hp', 20);
+            $table->text('alamat')->nullable();
+            $table->string('password', 255);
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('pengajus');
+        Schema::dropIfExists('pengaju');
     }
 };

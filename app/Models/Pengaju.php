@@ -20,4 +20,10 @@ class Pengaju extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
     ];
+
+    // Relasi: Pengaju memiliki banyak Pengajuan
+    public function pengajuans()
+    {
+        return $this->hasMany(Pengajuan::class, 'id_pengaju');
+    }
 }
