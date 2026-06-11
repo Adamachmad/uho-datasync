@@ -16,7 +16,7 @@
             </a>
 
             <div class="d-flex align-items-center gap-3 text-white">
-                <span><?php echo e(auth()->user()->name); ?> (<?php echo e(auth()->user()->role); ?>)</span>
+                <span><?php echo e(auth()->user()->nama); ?> (<?php echo e(auth()->user()->role); ?>)</span>
                 <form method="POST" action="<?php echo e(route('admin.logout')); ?>">
                     <?php echo csrf_field(); ?>
                     <button class="btn btn-sm btn-outline-light" type="submit">Logout</button>
@@ -75,22 +75,37 @@
                             <th>Jenis Pengajuan</th>
                             <th>Status</th>
                             <th>Waktu</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php $__empty_1 = true; $__currentLoopData = $pengajuanTerbaru; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                            <tr style="cursor: pointer;" onclick="window.location='<?php echo e(route('admin.pengajuan.show', $item)); ?>'">
+                            <tr>
                                 <td><?php echo e($i + 1); ?></td>
                                 <td><?php echo e($item->pengaju->nama_lengkap ?? '-'); ?></td>
                                 <td><?php echo e($item->pengaju->nim ?? '-'); ?></td>
                                 <td><?php echo e($item->jenis_pengajuan->nama_pengajuan ?? '-'); ?></td>
                                 <td>
-                                    <span class="badge badge-pill <?php echo e($item->status_pengajuan->badge_class ?? 'bg-gray-100'); ?>">
-                                        <?php echo e($item->status_pengajuan->label ?? $item->status_pengajuan->nama_status ?? '-'); ?>
-
-                                    </span>
+                                    <?php
+                                        $namaStatus = $item->status_pengajuan->nama_status ?? '';
+                                        $labelStatus = \App\Models\StatusPengajuan::LABELS[$namaStatus] ?? $namaStatus;
+                                        $bsBadge = match($namaStatus) {
+                                            'SELESAI' => 'success',
+                                            'DITOLAK' => 'danger',
+                                            'TERKIRIM_PDDIKTI' => 'primary',
+                                            'VERIFIKASI_PUSTIK' => 'warning',
+                                            'TERKIRIM_PUSTIK' => 'warning',
+                                            default => 'secondary',
+                                        };
+                                    ?>
+                                    <span class="badge bg-<?php echo e($bsBadge); ?>"><?php echo e($labelStatus); ?></span>
                                 </td>
                                 <td><?php echo e($item->created_at->format('d/m/Y H:i')); ?></td>
+                                <td>
+                                    <a href="<?php echo e(route('admin.pengajuan.show', $item->id)); ?>" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-search me-1"></i>Detail
+                                    </a>
+                                </td>
                             </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>

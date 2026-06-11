@@ -16,7 +16,7 @@
             </a>
 
             <div class="d-flex align-items-center gap-3 text-white">
-                <span>{{ auth()->user()->name }} ({{ auth()->user()->role }})</span>
+                <span>{{ auth()->user()->nama }} ({{ auth()->user()->role }})</span>
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
                     <button class="btn btn-sm btn-outline-light" type="submit">Logout</button>
@@ -75,6 +75,7 @@
                             <th>Jenis Pengajuan</th>
                             <th>Status</th>
                             <th>Waktu</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -84,8 +85,27 @@
                                 <td>{{ $item->pengaju->nama_lengkap ?? '-' }}</td>
                                 <td>{{ $item->pengaju->nim ?? '-' }}</td>
                                 <td>{{ $item->jenis_pengajuan->nama_pengajuan ?? '-' }}</td>
-                                <td>{{ $item->status_pengajuan->nama_status ?? '-' }}</td>
+                                <td>
+                                    @php
+                                        $namaStatus = $item->status_pengajuan->nama_status ?? '';
+                                        $labelStatus = \App\Models\StatusPengajuan::LABELS[$namaStatus] ?? $namaStatus;
+                                        $bsBadge = match($namaStatus) {
+                                            'SELESAI' => 'success',
+                                            'DITOLAK' => 'danger',
+                                            'TERKIRIM_PDDIKTI' => 'primary',
+                                            'VERIFIKASI_PUSTIK' => 'warning',
+                                            'TERKIRIM_PUSTIK' => 'warning',
+                                            default => 'secondary',
+                                        };
+                                    @endphp
+                                    <span class="badge bg-{{ $bsBadge }}">{{ $labelStatus }}</span>
+                                </td>
                                 <td>{{ $item->created_at->format('d/m/Y H:i') }}</td>
+                                <td>
+                                    <a href="{{ route('admin.pengajuan.show', $item->id) }}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-search me-1"></i>Detail
+                                    </a>
+                                </td>
                             </tr>
                         @empty
                             <tr>

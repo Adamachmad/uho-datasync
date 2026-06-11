@@ -174,8 +174,8 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@uho.ac.id'],
             [
-                'name' => 'Admin UHO-Datasync',
-                'password' => bcrypt('password123'),
+                'nama' => 'Admin UHO-Datasync',
+                'password' => bcrypt('Password123'),
                 'role' => 'admin',
             ]
         );
@@ -183,8 +183,8 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'superadmin@uho.ac.id'],
             [
-                'name' => 'Super Admin UHO-Datasync',
-                'password' => bcrypt('password123'),
+                'nama' => 'Super Admin UHO-Datasync',
+                'password' => bcrypt('Password123'),
                 'role' => 'super_admin',
             ]
         );

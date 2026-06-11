@@ -41,7 +41,11 @@ $width = match ($width) {
 };
 ?>
 
-<div class="relative" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false">
+<div class="relative" x-data="{ open: false }"
+     @click.outside="open = false"
+     @close.stop="open = false"
+     @mouseenter="open = true"
+     @mouseleave="setTimeout(() => open = false, 100)">
     <div @click="open = ! open">
         <?php echo e($trigger); ?>
 
@@ -56,7 +60,8 @@ $width = match ($width) {
             x-transition:leave-end="opacity-0 scale-95"
             class="absolute z-50 mt-2 <?php echo e($width); ?> rounded-md shadow-lg <?php echo e($alignmentClasses); ?>"
             style="display: none;"
-            @click="open = false">
+            @mouseenter="open = true"
+            @mouseleave="setTimeout(() => open = false, 100)">
         <div class="rounded-md ring-1 ring-black ring-opacity-5 <?php echo e($contentClasses); ?>">
             <?php echo e($content); ?>
 

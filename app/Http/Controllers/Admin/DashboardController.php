@@ -47,6 +47,29 @@ class DashboardController extends Controller
         return view('admin.dashboard', compact('stats', 'pengajuanTerbaru', 'statusFlow'));
     }
 
+    public function show(Pengajuan $pengajuan): View
+    {
+        $pengajuan->load(['pengaju', 'jenis_pengajuan', 'status_pengajuan', 'dokumens.jenisDokumen']);
+
+        $riwayat = $pengajuan->riwayat()
+            ->with('status_pengajuan')
+            ->latest()
+            ->get();
+
+        $statusFlow = StatusPengajuan::query()
+            ->whereIn('nama_status', [
+                StatusPengajuan::TERKIRIM_PUSTIK,
+                StatusPengajuan::VERIFIKASI_PUSTIK,
+                StatusPengajuan::TERKIRIM_PDDIKTI,
+                StatusPengajuan::SELESAI,
+                StatusPengajuan::DITOLAK,
+            ])
+            ->orderBy('urutan')
+            ->get();
+
+        return view('admin.pengajuan.show', compact('pengajuan', 'riwayat', 'statusFlow'));
+    }
+
     public function updateStatus(Request $request, Pengajuan $pengajuan): RedirectResponse
     {
         $validated = $request->validate([
@@ -91,7 +114,7 @@ class DashboardController extends Controller
                 'id_status_pengajuan' => $status->id,
                 'catatan' => $catatan !== '' ? $catatan : ($status->label ?? 'Status pengajuan diperbarui oleh Admin PUSTIK.'),
                 'keterangan_penolakan' => $status->nama_status === StatusPengajuan::DITOLAK ? $alasanPenolakan : null,
-                'created_by' => auth()->user()?->name ?? 'Admin PUSTIK',
+                'created_by' => auth()->user()?->nama ?? 'Admin PUSTIK',
             ]);
         });
 

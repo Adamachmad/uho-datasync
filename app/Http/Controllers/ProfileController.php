@@ -31,6 +31,10 @@ class ProfileController extends Controller
         $pengaju = Auth::guard('pengaju')->user();
         $pengaju->fill($request->validated());
 
+        if ($pengaju->isDirty('email')) {
+            $pengaju->email_verified_at = null;
+        }
+
         $pengaju->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');

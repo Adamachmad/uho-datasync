@@ -29,6 +29,32 @@
             border-bottom: 2px solid #e9ecef;
             padding-bottom: 5px;
         }
+
+        /* Hilangkan ikon silang validasi Bootstrap di form registrasi */
+        .form-control.is-invalid,
+        .was-validated .form-control:invalid,
+        .form-select.is-invalid,
+        .was-validated .form-select:invalid {
+            background-image: none;
+            padding-right: 0.75rem;
+        }
+
+        /* Kecilkan ikon silang SweetAlert validasi error */
+        .swal2-popup.register-error-popup .swal2-icon.swal2-error {
+            width: 2.1em !important;
+            height: 2.1em !important;
+            margin: 0.4em auto 0.5em !important;
+            border-width: 0.15em !important;
+        }
+
+        .swal2-popup.register-error-popup .swal2-icon.swal2-error .swal2-x-mark {
+            width: 1.2em !important;
+            height: 1.2em !important;
+        }
+
+        .swal2-popup.register-error-popup .swal2-title {
+            font-size: 1.1rem;
+        }
     </style>
 </head>
 <body>
@@ -225,6 +251,9 @@
 
             Swal.fire({
                 icon: 'error',
+                customClass: {
+                    popup: 'register-error-popup'
+                },
                 title: 'Validasi Gagal',
                 html: '<ul style="text-align: left; margin-bottom: 0;">' + errorList + '</ul>',
                 confirmButtonText: 'Tutup',

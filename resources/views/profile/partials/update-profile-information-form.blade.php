@@ -38,7 +38,7 @@
         <div>
             <x-input-label for="no_hp" value="No. HP / WhatsApp" />
             <x-text-input id="no_hp" name="no_hp" type="text" class="mt-1 block w-full" :value="old('no_hp', $user->no_hp)" required />
-            <x-input-error class="mt-2" :messages="(is_objecerrors) && method_exists($errors, 'get')) ? $errors->get('no_hp') : []" />
+            <x-input-error class="mt-2" :messages="$errors->get('no_hp')" />
         </div>
 
         <div>

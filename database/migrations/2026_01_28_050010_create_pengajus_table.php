@@ -16,7 +16,9 @@ return new class extends Migration
             $table->string('nama_lengkap', 255);
             $table->string('nim', 20)->unique();
             $table->string('nik', 20)->nullable();
+            $table->string('jurusan', 50)->nullable();
             $table->string('email', 255)->unique();
+            $table->timestamp('email_verified_at')->nullable();
             $table->string('no_hp', 20);
             $table->text('alamat')->nullable();
             $table->string('password', 255);

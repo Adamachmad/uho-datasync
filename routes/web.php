@@ -46,6 +46,7 @@ Route::prefix('admin')->group(function () {
 
     Route::middleware(['auth:web', 'role:admin,super_admin'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/pengajuan/{pengajuan}', [AdminDashboardController::class, 'show'])->name('admin.pengajuan.show');
         Route::post('/pengajuan/{pengajuan}/status', [AdminDashboardController::class, 'updateStatus'])->name('admin.pengajuan.update-status');
         Route::post('/logout', [AdminAuthenticatedSessionController::class, 'destroy'])->name('admin.logout');
     });
