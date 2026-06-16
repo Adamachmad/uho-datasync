@@ -9,23 +9,14 @@
             {{-- Logo --}}
             <div class="flex">
                 <div class="shrink-0 flex items-center">
-                    @if($pengajuAuth)
-                        <a href="{{ route('dashboard') }}" class="flex items-center gap-2 no-underline">
-                            <img src="{{ asset('storage/Logo-UHO-Normal-1.png') }}" alt="UHO Logo" style="height: 38px; width: auto;">
-                            <span style="font-weight:700; font-size:.9rem; color:#0f2557; line-height:1.1;">
-                                UHO-Datasync<br>
-                                <span style="font-size:.65rem; font-weight:500; color:#6b7280; letter-spacing:.03em;">Portal Data Mahasiswa</span>
-                            </span>
-                        </a>
-                    @else
-                        <a href="{{ route('home') }}" class="flex items-center gap-2 no-underline">
-                            <img src="{{ asset('storage/Logo-UHO-Normal-1.png') }}" alt="UHO Logo" style="height: 38px; width: auto;">
-                            <span style="font-weight:700; font-size:.9rem; color:#0f2557; line-height:1.1;">
-                                UHO-Datasync<br>
-                                <span style="font-size:.65rem; font-weight:500; color:#6b7280; letter-spacing:.03em;">Portal Data Mahasiswa</span>
-                            </span>
-                        </a>
-                    @endif
+                    {{-- Logo selalu ke homepage --}}
+                    <a href="{{ route('home') }}" class="flex items-center gap-2 no-underline">
+                        <img src="{{ asset('storage/Logo-UHO-Normal-1.png') }}" alt="UHO Logo" style="height: 38px; width: auto;">
+                        <span style="font-weight:700; font-size:.9rem; color:#0f2557; line-height:1.1;">
+                            UHO-Datasync<br>
+                            <span style="font-size:.65rem; font-weight:500; color:#6b7280; letter-spacing:.03em;">Portal Data Mahasiswa</span>
+                        </span>
+                    </a>
                 </div>
 
                 {{-- Nav links (logged in) --}}
@@ -41,10 +32,13 @@
             {{-- Right side --}}
             <div class="hidden sm:flex sm:items-center sm:ms-6 gap-3">
                 @if($pengajuAuth)
-                    {{-- Logged-in: account dropdown --}}
-                    <x-dropdown align="right" width="56">
-                        <x-slot name="trigger">
-                            <button style="
+                    {{-- Logged-in: account dropdown pakai Alpine click (bukan hover) --}}
+                    <div x-data="{ dropOpen: false }" @click.outside="dropOpen = false" style="position:relative;">
+
+                        {{-- Trigger --}}
+                        <button @click="dropOpen = !dropOpen"
+                            :style="dropOpen ? 'border-color:#0f2557; background:white;' : ''"
+                            style="
                                 display:flex; align-items:center; gap:.5rem;
                                 padding:.4rem .85rem .4rem .5rem;
                                 background:#f0f4ff;
@@ -53,66 +47,77 @@
                                 cursor:pointer;
                                 transition:all .2s;
                                 font-family:inherit;
-                            "
-                            onmouseover="this.style.borderColor='#0f2557'; this.style.background='white';"
-                            onmouseout="this.style.borderColor='rgba(15,37,87,0.12)'; this.style.background='#f0f4ff';">
-                                {{-- Avatar --}}
-                                <div style="
-                                    width:32px; height:32px;
-                                    background:#0f2557;
-                                    border-radius:50%;
-                                    display:flex; align-items:center; justify-content:center;
-                                    color:white; font-size:.8rem; font-weight:700;
-                                    flex-shrink:0;
-                                ">
-                                    {{ strtoupper(substr($pengajuAuth->nama_lengkap, 0, 1)) }}
-                                </div>
-                                <span style="font-size:.875rem; font-weight:600; color:#0f2557; max-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                    {{ $pengajuAuth->nama_lengkap }}
-                                </span>
-                                <svg style="color:#6b7280;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </x-slot>
+                            ">
+                            <div style="
+                                width:32px; height:32px;
+                                background:#0f2557;
+                                border-radius:50%;
+                                display:flex; align-items:center; justify-content:center;
+                                color:white; font-size:.8rem; font-weight:700;
+                                flex-shrink:0;
+                            ">
+                                {{ strtoupper(substr($pengajuAuth->nama_lengkap, 0, 1)) }}
+                            </div>
+                            <span style="font-size:.875rem; font-weight:600; color:#0f2557; max-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                {{ $pengajuAuth->nama_lengkap }}
+                            </span>
+                            <svg :style="dropOpen ? 'transform:rotate(180deg)' : ''"
+                                 style="color:#6b7280; transition:transform .2s; flex-shrink:0;"
+                                 xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
 
-                        <x-slot name="content">
+                        {{-- Dropdown panel --}}
+                        <div x-show="dropOpen"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             style="
+                                position:absolute; right:0; top:calc(100% + 8px);
+                                background:white;
+                                border:1px solid rgba(15,37,87,0.1);
+                                border-radius:14px;
+                                box-shadow: 0 12px 40px rgba(15,37,87,0.15);
+                                min-width:230px;
+                                padding:.5rem;
+                                z-index:50;
+                             ">
+
                             {{-- Header info --}}
-                            <div style="padding:.75rem 1rem .6rem; border-bottom:1px solid #f1f5f9;">
+                            <div style="padding:.75rem 1rem .6rem; border-bottom:1px solid #f1f5f9; margin-bottom:.25rem;">
                                 <div style="font-weight:700; color:#0f2557; font-size:.875rem;">{{ $pengajuAuth->nama_lengkap }}</div>
                                 <div style="font-size:.72rem; color:#6b7280;">{{ $pengajuAuth->email }}</div>
                                 <div style="font-size:.72rem; color:#6b7280;">NIM: {{ $pengajuAuth->nim }}</div>
                             </div>
 
-                            <x-dropdown-link :href="route('dashboard')">
-                                <div style="display:flex; align-items:center; gap:.6rem;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
-                                    Dashboard
-                                </div>
-                            </x-dropdown-link>
+                            <a href="{{ route('dashboard') }}" style="display:flex; align-items:center; gap:.6rem; padding:.6rem 1rem; border-radius:8px; font-size:.875rem; font-weight:500; color:#1e293b; text-decoration:none; transition:background .15s;"
+                               onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='transparent'">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                                Dashboard
+                            </a>
 
-                            <x-dropdown-link :href="route('profile.edit')">
-                                <div style="display:flex; align-items:center; gap:.6rem;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                    {{ __('Profil Saya') }}
-                                </div>
-                            </x-dropdown-link>
+                            <a href="{{ route('profile.edit') }}" style="display:flex; align-items:center; gap:.6rem; padding:.6rem 1rem; border-radius:8px; font-size:.875rem; font-weight:500; color:#1e293b; text-decoration:none; transition:background .15s;"
+                               onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='transparent'">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                Profil Saya
+                            </a>
 
                             <div style="height:1px; background:#f1f5f9; margin:.25rem 0;"></div>
 
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault(); this.closest('form').submit();"
-                                    style="color:#dc2626;">
-                                    <div style="display:flex; align-items:center; gap:.6rem; color:#dc2626;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-                                        {{ __('Keluar') }}
-                                    </div>
-                                </x-dropdown-link>
+                                <button type="submit" style="display:flex; align-items:center; gap:.6rem; padding:.6rem 1rem; border-radius:8px; font-size:.875rem; font-weight:500; color:#dc2626; background:none; border:none; cursor:pointer; width:100%; font-family:inherit; transition:background .15s;"
+                                        onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='transparent'">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                                    Keluar
+                                </button>
                             </form>
-                        </x-slot>
-                    </x-dropdown>
+                        </div>
+                    </div>
 
                 @else
                     {{-- Guest: Login & Daftar buttons --}}

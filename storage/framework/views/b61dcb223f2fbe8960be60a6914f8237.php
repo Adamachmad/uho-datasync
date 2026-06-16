@@ -138,7 +138,16 @@
         border-radius: 16px;
         padding: 1.25rem;
         display: flex; align-items: center; gap: 1rem;
+        cursor: pointer;
+        transition: all .2s;
+        text-decoration: none;
     }
+    .stat-card:hover {
+        border-color: var(--navy);
+        box-shadow: 0 4px 16px rgba(15,37,87,0.1);
+        transform: translateY(-2px);
+    }
+    .stat-card.active { border-color: var(--navy); background: var(--light); }
     .stat-card-icon {
         width: 48px; height: 48px;
         border-radius: 14px;
@@ -148,9 +157,79 @@
     .stat-card-icon.blue   { background: #eff6ff; color: var(--navy); }
     .stat-card-icon.gold   { background: #fef9c3; color: #854d0e; }
     .stat-card-icon.green  { background: #f0fdf4; color: var(--success); }
+    .stat-card-icon.red    { background: #fee2e2; color: var(--danger); }
     .stat-card-icon svg { width: 24px; height: 24px; }
     .stat-card-val { font-size: 1.4rem; font-weight: 800; color: var(--navy); line-height: 1; }
     .stat-card-lbl { font-size: .75rem; color: var(--gray); margin-top: .25rem; }
+
+    /* ===== DETAIL PANEL (muncul saat stat card diklik) ===== */
+    .detail-panel {
+        background: white;
+        border: 1.5px solid var(--navy);
+        border-radius: 18px;
+        overflow: hidden;
+        display: none;
+        animation: fadeIn .2s ease;
+    }
+    .detail-panel.show { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+    .detail-panel-header {
+        padding: 1rem 1.5rem;
+        background: var(--light);
+        border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .detail-panel-header h3 { font-size: .95rem; font-weight: 700; color: var(--navy); }
+    .detail-panel-close {
+        width: 28px; height: 28px;
+        border: none; background: white;
+        border-radius: 50%; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--gray); font-size: .85rem;
+        border: 1px solid var(--border);
+    }
+    .detail-panel-body { padding: 1.25rem 1.5rem; }
+
+    /* Dokumen list di detail panel */
+    .dp-dok-item {
+        display: flex; align-items: center; gap: .75rem;
+        padding: .75rem;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        margin-bottom: .6rem;
+        font-size: .875rem;
+    }
+    .dp-dok-icon { width: 36px; height: 36px; border-radius: 10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .dp-dok-icon.pdf { background: #fee2e2; color: #b91c1c; }
+    .dp-dok-icon.img { background: #eff6ff; color: var(--navy); }
+    .dp-dok-name { flex:1; font-weight:600; color: var(--text); }
+    .dp-dok-meta { font-size:.72rem; color:var(--gray); }
+    .dp-dok-link { font-size:.78rem; font-weight:600; color:var(--navy); text-decoration:none; padding:.3rem .7rem; background:var(--light); border-radius:6px; }
+    .dp-dok-link:hover { background: #dbe4ff; }
+
+    /* Alasan penolakan box */
+    .penolakan-box {
+        background: #fff5f5;
+        border: 1.5px solid #fca5a5;
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        display: flex; gap: 1rem; align-items: flex-start;
+    }
+    .penolakan-icon {
+        width: 40px; height: 40px; flex-shrink: 0;
+        background: #fee2e2; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--danger);
+    }
+    .penolakan-icon svg { width: 22px; height: 22px; }
+    .penolakan-title { font-weight: 700; color: var(--danger); font-size: .95rem; margin-bottom: .35rem; }
+    .penolakan-alasan {
+        font-size: .875rem; color: #7f1d1d;
+        background: white; border: 1px solid #fca5a5;
+        border-radius: 8px; padding: .75rem 1rem;
+        line-height: 1.65; margin-top: .5rem;
+    }
+    .penolakan-note { font-size: .78rem; color: #991b1b; margin-top: .5rem; }
 
     /* ===== SECTION HEADER ===== */
     .section-hdr {
@@ -491,46 +570,217 @@
         <?php endif; ?>
 
         
+        <?php
+            // Ambil semua dokumen dari pengajuan aktif (bukan hanya draft)
+            $semuaDokumen = collect();
+            if ($pengajuanAktif) {
+                $semuaDokumen = \App\Models\PengajuanHasDokumen::where('id_pengajuan', $pengajuanAktif->id)
+                    ->with('jenisDokumen')
+                    ->latest()->get();
+            } elseif ($pengajuanDraft) {
+                $semuaDokumen = $dokumenDiunggah;
+            }
+
+            $statusNama = $pengajuanAktif ? ($pengajuanAktif->status_pengajuan->nama_status ?? '-') : 'Belum Ada';
+            $isDitolak  = $statusNama === 'DITOLAK';
+            $isSelesai  = $statusNama === 'SELESAI';
+            $statusColor = $isDitolak ? 'red' : ($isSelesai ? 'green' : 'gold');
+        ?>
+
         <div class="cards-row">
-            <div class="stat-card">
+            
+            <div class="stat-card" onclick="togglePanel('panel-dokumen', this)" id="card-dokumen">
                 <div class="stat-card-icon blue">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 </div>
                 <div>
-                    <div class="stat-card-val"><?php echo e($dokumenDiunggah->count()); ?></div>
-                    <div class="stat-card-lbl">Dokumen Diupload</div>
+                    <div class="stat-card-val"><?php echo e($semuaDokumen->count()); ?></div>
+                    <div class="stat-card-lbl">Dokumen Diupload · Klik untuk lihat</div>
                 </div>
             </div>
-            <div class="stat-card">
+
+            
+            <div class="stat-card" onclick="togglePanel('panel-status', this)" id="card-status">
                 <div class="stat-card-icon gold">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 </div>
                 <div>
                     <div class="stat-card-val"><?php echo e($pengajuanAktif ? 'Ada' : 'Belum'); ?></div>
-                    <div class="stat-card-lbl">Status Pengajuan</div>
+                    <div class="stat-card-lbl">Status Pengajuan · Klik untuk lihat</div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-card-icon green">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+
+            
+            <div class="stat-card" onclick="togglePanel('panel-status-terakhir', this)" id="card-status-terakhir">
+                <div class="stat-card-icon <?php echo e($statusColor); ?>">
+                    <?php if($isDitolak): ?>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+                    <?php elseif($isSelesai): ?>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <?php else: ?>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <?php endif; ?>
                 </div>
                 <div>
-                    <div class="stat-card-val"><?php echo e($pengajuanAktif ? $pengajuanAktif->status_pengajuan->nama_status ?? '-' : 'Belum Ada'); ?></div>
-                    <div class="stat-card-lbl">Status Terakhir</div>
+                    <div class="stat-card-val" style="font-size:1rem;"><?php echo e($statusNama); ?></div>
+                    <div class="stat-card-lbl">Status Terakhir · Klik untuk lihat</div>
                 </div>
             </div>
         </div>
 
         
-        <?php if($pengajuanAktif && $pengajuanAktif->id_status_pengajuan != $pengajuanDraft?->id_status_pengajuan): ?>
+        <div class="detail-panel" id="panel-dokumen">
+            <div class="detail-panel-header">
+                <h3>📄 Dokumen yang Sudah Diupload</h3>
+                <button class="detail-panel-close" onclick="closePanel('panel-dokumen', 'card-dokumen')">✕</button>
+            </div>
+            <div class="detail-panel-body">
+                <?php $__empty_1 = true; $__currentLoopData = $semuaDokumen; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dok): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <?php $ext = strtolower($dok->file_type ?? ''); ?>
+                <div class="dp-dok-item">
+                    <div class="dp-dok-icon <?php echo e($ext === 'pdf' ? 'pdf' : 'img'); ?>">
+                        <?php if($ext === 'pdf'): ?>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <?php else: ?>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                        <?php endif; ?>
+                    </div>
+                    <div class="flex-1">
+                        <div class="dp-dok-name"><?php echo e($dok->jenisDokumen->nama_dokumen ?? 'Dokumen'); ?></div>
+                        <div class="dp-dok-meta"><?php echo e(strtoupper($ext)); ?> · <?php echo e($dok->file_size_kb ?? '-'); ?> KB · Diupload <?php echo e(\Carbon\Carbon::parse($dok->created_at)->format('d M Y')); ?></div>
+                    </div>
+                    <a href="<?php echo e(asset('storage/' . $dok->path_file)); ?>" target="_blank" class="dp-dok-link">Lihat →</a>
+                </div>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                <p style="color:var(--gray); font-size:.875rem; text-align:center; padding:1rem 0;">Belum ada dokumen yang diupload.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        
+        <div class="detail-panel" id="panel-status">
+            <div class="detail-panel-header">
+                <h3>📋 Detail Status Pengajuan</h3>
+                <button class="detail-panel-close" onclick="closePanel('panel-status', 'card-status')">✕</button>
+            </div>
+            <div class="detail-panel-body">
+                <?php if($pengajuanAktif): ?>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+                    <div style="background:var(--light); border-radius:12px; padding:1rem;">
+                        <div style="font-size:.72rem; color:var(--gray); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.3rem;">Jenis Pengajuan</div>
+                        <div style="font-weight:700; color:var(--navy);"><?php echo e($pengajuanAktif->jenis_pengajuan->nama_pengajuan ?? '-'); ?></div>
+                    </div>
+                    <div style="background:var(--light); border-radius:12px; padding:1rem;">
+                        <div style="font-size:.72rem; color:var(--gray); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.3rem;">Status Saat Ini</div>
+                        <div style="font-weight:700; color:<?php echo e($isDitolak ? 'var(--danger)' : 'var(--navy)'); ?>;"><?php echo e($statusNama); ?></div>
+                    </div>
+                    <div style="background:var(--light); border-radius:12px; padding:1rem;">
+                        <div style="font-size:.72rem; color:var(--gray); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.3rem;">Tanggal Pengajuan</div>
+                        <div style="font-weight:700; color:var(--navy);"><?php echo e(\Carbon\Carbon::parse($pengajuanAktif->created_at)->format('d M Y')); ?></div>
+                    </div>
+                    <div style="background:var(--light); border-radius:12px; padding:1rem;">
+                        <div style="font-size:.72rem; color:var(--gray); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.3rem;">Terakhir Diperbarui</div>
+                        <div style="font-weight:700; color:var(--navy);"><?php echo e(\Carbon\Carbon::parse($pengajuanAktif->updated_at)->format('d M Y, H:i')); ?></div>
+                    </div>
+                </div>
+                <?php if($pengajuanAktif->keterangan_user): ?>
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:.9rem 1rem; font-size:.875rem; color:var(--text);">
+                    <strong>Keterangan:</strong> <?php echo e($pengajuanAktif->keterangan_user); ?>
+
+                </div>
+                <?php endif; ?>
+                <?php else: ?>
+                <p style="color:var(--gray); font-size:.875rem; text-align:center; padding:1rem 0;">Belum ada pengajuan aktif.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        
+        <div class="detail-panel" id="panel-status-terakhir">
+            <div class="detail-panel-header">
+                <h3>🔍 Detail Status Terakhir</h3>
+                <button class="detail-panel-close" onclick="closePanel('panel-status-terakhir', 'card-status-terakhir')">✕</button>
+            </div>
+            <div class="detail-panel-body">
+                <?php if($pengajuanAktif): ?>
+
+                
+                <?php if($isDitolak && $pengajuanAktif->keterangan_penolakan): ?>
+                <div class="penolakan-box" style="margin-bottom:1.25rem;">
+                    <div class="penolakan-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+                    </div>
+                    <div style="flex:1;">
+                        <div class="penolakan-title">Pengajuan Ditolak</div>
+                        <div style="font-size:.8rem; color:#991b1b;">Berikut adalah alasan penolakan dari Admin UPA TIK:</div>
+                        <div class="penolakan-alasan"><?php echo e($pengajuanAktif->keterangan_penolakan); ?></div>
+                        <div class="penolakan-note">💡 Silakan perbaiki pengajuan Anda sesuai alasan di atas, lalu ajukan kembali.</div>
+                    </div>
+                </div>
+                <?php elseif($isDitolak): ?>
+                <div class="penolakan-box" style="margin-bottom:1.25rem;">
+                    <div class="penolakan-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+                    </div>
+                    <div>
+                        <div class="penolakan-title">Pengajuan Ditolak</div>
+                        <div style="font-size:.8rem; color:#991b1b;">Tidak ada alasan penolakan yang dicatat. Silakan hubungi UPA TIK untuk informasi lebih lanjut.</div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                
+                <?php if(count($riwayat) > 0): ?>
+                <?php $lastRiwayat = collect($riwayat)->first(); ?>
+                <div style="background:var(--light); border-radius:12px; padding:1.1rem;">
+                    <div style="font-size:.72rem; color:var(--gray); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:.6rem;">Update Terakhir</div>
+                    <div style="font-weight:700; color:var(--navy); margin-bottom:.25rem;"><?php echo e($lastRiwayat->status_pengajuan->nama_status ?? '-'); ?></div>
+                    <div style="font-size:.82rem; color:var(--text); margin-bottom:.25rem;"><?php echo e($lastRiwayat->catatan ?? '-'); ?></div>
+                    <div style="font-size:.75rem; color:var(--gray);"><?php echo e(\Carbon\Carbon::parse($lastRiwayat->created_at)->format('d M Y, H:i')); ?> WITA · oleh <?php echo e($lastRiwayat->created_by ?? 'Sistem'); ?></div>
+                </div>
+                <?php endif; ?>
+
+                <?php else: ?>
+                <p style="color:var(--gray); font-size:.875rem; text-align:center; padding:1rem 0;">Belum ada pengajuan aktif.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        
+        <?php if($isDitolak): ?>
+        <div class="status-banner warning" style="border-color:#fca5a5; background:#fff5f5;">
+            <div class="status-icon" style="background:#fee2e2; color:var(--danger);">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+            </div>
+            <div class="status-text" style="flex:1;">
+                <strong style="color:var(--danger);">Pengajuan Ditolak</strong>
+                <span>
+                    <?php if($pengajuanAktif->keterangan_penolakan): ?>
+                        Alasan: <b><?php echo e($pengajuanAktif->keterangan_penolakan); ?></b>
+                    <?php else: ?>
+                        Tidak ada keterangan. Silakan hubungi UPA TIK.
+                    <?php endif; ?>
+                    — Klik kartu "Status Terakhir" di atas untuk detail lengkap.
+                </span>
+            </div>
+        </div>
+        <?php elseif($isSelesai): ?>
+        <div class="status-banner success">
+            <div class="status-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="status-text">
+                <strong>Pengajuan Selesai!</strong>
+                <span>Perubahan data Anda telah berhasil diproses. Terima kasih.</span>
+            </div>
+        </div>
+        <?php elseif($pengajuanAktif && !$pengajuanDraft): ?>
         <div class="status-banner info">
             <div class="status-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg></div>
             <div class="status-text">
                 <strong>Pengajuan Sedang Diproses</strong>
-                <span>Status: <b><?php echo e($pengajuanAktif->status_pengajuan->nama_status ?? '-'); ?></b> — Silakan pantau riwayat di bawah.</span>
+                <span>Status: <b><?php echo e($statusNama); ?></b> — Silakan pantau riwayat di bawah.</span>
             </div>
         </div>
-        <?php elseif(!$pengajuanDraft): ?>
+        <?php elseif(!$pengajuanDraft && !$pengajuanAktif): ?>
         <div class="status-banner draft">
             <div class="status-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg></div>
             <div class="status-text">
@@ -749,6 +999,12 @@
                     <div class="tl-content">
                         <div class="tl-status"><?php echo e($r->status_pengajuan->nama_status ?? '-'); ?></div>
                         <div class="tl-note"><?php echo e($r->catatan ?? '-'); ?></div>
+                        <?php if($r->keterangan_penolakan): ?>
+                        <div style="margin-top:.4rem; background:#fff5f5; border:1px solid #fca5a5; border-radius:8px; padding:.55rem .8rem; font-size:.78rem; color:#7f1d1d;">
+                            <strong>Alasan Penolakan:</strong> <?php echo e($r->keterangan_penolakan); ?>
+
+                        </div>
+                        <?php endif; ?>
                         <div class="tl-date"><?php echo e(\Carbon\Carbon::parse($r->created_at)->format('d M Y, H:i')); ?> WITA · oleh <?php echo e($r->created_by ?? 'Sistem'); ?></div>
                     </div>
                 </div>
@@ -766,6 +1022,34 @@
 </div>
 
 <script>
+    // Toggle stat card detail panels
+    function togglePanel(panelId, cardEl) {
+        const panel = document.getElementById(panelId);
+        const allPanels = document.querySelectorAll('.detail-panel');
+        const allCards  = document.querySelectorAll('.stat-card');
+
+        // Kalau panel ini sudah terbuka, tutup
+        if (panel.classList.contains('show')) {
+            panel.classList.remove('show');
+            cardEl.classList.remove('active');
+            return;
+        }
+
+        // Tutup semua panel & card lain
+        allPanels.forEach(p => p.classList.remove('show'));
+        allCards.forEach(c => c.classList.remove('active'));
+
+        // Buka panel yang dipilih
+        panel.classList.add('show');
+        cardEl.classList.add('active');
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closePanel(panelId, cardId) {
+        document.getElementById(panelId)?.classList.remove('show');
+        document.getElementById(cardId)?.classList.remove('active');
+    }
+
     // Pilih jenis pengajuan
     function selectJenis(id, nama) {
         // Remove all selected
