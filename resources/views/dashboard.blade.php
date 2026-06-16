@@ -537,7 +537,7 @@
             <div style="padding:1rem 1.25rem; font-size:.78rem; color:var(--gray); line-height:1.7;">
                 <p><strong style="color:var(--text);">UPA TIK UHO</strong></p>
                 <p>📍 Gedung Rektorat Lantai 1</p>
-                <p>📞 (0401) 390 XXX</p>
+                <p>📞 (0401)-3190105</p>
                 <p>🕐 Senin–Jumat, 08.00–16.00 WITA</p>
             </div>
         </div>
@@ -777,6 +777,100 @@
                 <strong>Belum Ada Pengajuan</strong>
                 <span>Pilih jenis pengajuan di bawah, lalu upload dokumen yang diperlukan untuk memulai.</span>
             </div>
+        </div>
+        @endif
+
+        {{-- ===== SECTION DITOLAK: Revisi atau Ajukan Baru ===== --}}
+        @if($isDitolak && !$pengajuanDraft)
+        <div style="background:white; border:1.5px solid #fca5a5; border-radius:20px; overflow:hidden;">
+
+            {{-- Header --}}
+            <div style="background:#fff5f5; padding:1.25rem 1.5rem; border-bottom:1px solid #fca5a5; display:flex; align-items:center; gap:.75rem;">
+                <div style="width:40px; height:40px; background:#fee2e2; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#dc2626;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+                </div>
+                <div>
+                    <div style="font-weight:700; color:#b91c1c; font-size:1rem;">Pengajuan Ditolak</div>
+                    <div style="font-size:.78rem; color:#991b1b; margin-top:.1rem;">
+                        @if($pengajuanAktif->keterangan_penolakan)
+                            Alasan: <strong>{{ $pengajuanAktif->keterangan_penolakan }}</strong>
+                        @else
+                            Tidak ada keterangan penolakan. Hubungi UPA TIK untuk informasi lebih lanjut.
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            {{-- Pilihan aksi --}}
+            <div style="padding:1.5rem; display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+
+                {{-- Opsi 1: Ajukan Ulang (draft baru, dokumen upload ulang) --}}
+                <div style="border:1.5px solid var(--border); border-radius:16px; padding:1.25rem; transition:all .2s;"
+                     onmouseover="this.style.borderColor='#0f2557'; this.style.background='#fafbff';"
+                     onmouseout="this.style.borderColor='var(--border)'; this.style.background='white';">
+                    <div style="width:44px; height:44px; background:#eff6ff; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#0f2557; margin-bottom:1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                    </div>
+                    <div style="font-weight:700; color:#0f2557; font-size:.95rem; margin-bottom:.4rem;">Ajukan Ulang</div>
+                    <div style="font-size:.8rem; color:#6b7280; line-height:1.6; margin-bottom:1.1rem;">
+                        Buat pengajuan baru berdasarkan jenis yang sama. Upload ulang dokumen sesuai catatan penolakan.
+                    </div>
+                    <form method="POST" action="{{ route('pengajuan.ajukan-ulang') }}"
+                          onsubmit="return confirm('Buat pengajuan ulang? Anda perlu upload dokumen kembali.')">
+                        @csrf
+                        <input type="hidden" name="id_pengajuan_lama" value="{{ $pengajuanAktif->id }}">
+                        <button type="submit" style="width:100%; padding:.65rem 1rem; background:#0f2557; color:white; border:none; border-radius:10px; font-size:.875rem; font-weight:700; font-family:inherit; cursor:pointer; transition:background .2s;"
+                                onmouseover="this.style.background='#1a3a8f'" onmouseout="this.style.background='#0f2557'">
+                            🔄 Ajukan Ulang Sekarang
+                        </button>
+                    </form>
+                </div>
+
+                {{-- Opsi 2: Hubungi Admin --}}
+                <div style="border:1.5px solid var(--border); border-radius:16px; padding:1.25rem;">
+                    <div style="width:44px; height:44px; background:#f0fdf4; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#16a34a; margin-bottom:1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <div style="font-weight:700; color:#0f2557; font-size:.95rem; margin-bottom:.4rem;">Butuh Bantuan?</div>
+                    <div style="font-size:.8rem; color:#6b7280; line-height:1.6; margin-bottom:1.1rem;">
+                        Jika Anda tidak memahami alasan penolakan, hubungi petugas UPA TIK secara langsung.
+                    </div>
+                    <div style="background:#f8fafc; border-radius:10px; padding:.85rem 1rem; font-size:.78rem; color:#374151; line-height:1.8;">
+                        <div>📍 Gedung Rektorat Lantai 1</div>
+                        <div>📞 (0401)-3190105</div>
+                        <div>🕐 Senin–Jumat, 08.00–16.00 WITA</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Checklist dokumen dari pengajuan yang ditolak --}}
+            @php
+                $dokumenLama = \App\Models\PengajuanHasDokumen::where('id_pengajuan', $pengajuanAktif->id)
+                    ->with('jenisDokumen')->get();
+            @endphp
+            @if($dokumenLama->count() > 0)
+            <div style="padding:0 1.5rem 1.5rem;">
+                <div style="background:#fef9c3; border:1px solid #fde047; border-radius:12px; padding:1rem 1.25rem;">
+                    <div style="font-size:.78rem; font-weight:700; color:#854d0e; margin-bottom:.65rem; text-transform:uppercase; letter-spacing:.05em;">
+                        📎 Dokumen yang Disubmit Sebelumnya
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:.4rem;">
+                        @foreach($dokumenLama as $dl)
+                        <div style="display:flex; align-items:center; justify-content:space-between; font-size:.8rem;">
+                            <span style="color:#713f12;">📄 {{ $dl->jenisDokumen->nama_dokumen ?? '-' }}</span>
+                            <a href="{{ asset('storage/' . $dl->path_file) }}" target="_blank"
+                               style="color:#0f2557; font-weight:600; text-decoration:none; font-size:.75rem; background:white; padding:.2rem .6rem; border-radius:6px; border:1px solid #fde047;">
+                                Lihat →
+                            </a>
+                        </div>
+                        @endforeach
+                    </div>
+                    <div style="margin-top:.75rem; font-size:.75rem; color:#92400e;">
+                        💡 Gunakan dokumen di atas sebagai referensi — upload ulang versi yang sudah diperbaiki saat ajukan ulang.
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
         @endif
 

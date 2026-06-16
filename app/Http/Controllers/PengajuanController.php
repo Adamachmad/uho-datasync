@@ -270,7 +270,50 @@ class PengajuanController extends Controller
         return $errors;
     }
 
-    // --- FUNGSI BARU: KIRIM PENGAJUAN ---
+    // --- FUNGSI: AJUKAN ULANG SETELAH DITOLAK ---
+    public function ajukanUlang(Request $request)
+    {
+        $request->validate([
+            'id_pengajuan_lama' => 'required|exists:pengajuan,id',
+        ]);
+
+        $pengajuanLama = Pengajuan::findOrFail($request->id_pengajuan_lama);
+
+        // Pastikan milik user ini
+        if ($pengajuanLama->id_pengaju != Auth::guard('pengaju')->id()) {
+            abort(403, 'Akses tidak valid.');
+        }
+
+        // Pastikan statusnya memang DITOLAK
+        $ditolakStatusId = $this->getStatusIdByNama(StatusPengajuan::DITOLAK);
+        if ((int) $pengajuanLama->id_status_pengajuan !== (int) $ditolakStatusId) {
+            return back()->with('error', 'Hanya pengajuan yang ditolak yang dapat diajukan ulang.');
+        }
+
+        $draftStatusId = $this->getDraftStatusId();
+
+        // Buat pengajuan baru sebagai draft, salin jenis pengajuan dari yang lama
+        $pengajuanBaru = Pengajuan::create([
+            'id_pengaju'          => $pengajuanLama->id_pengaju,
+            'id_jenis_pengajuan'  => $pengajuanLama->id_jenis_pengajuan,
+            'id_status_pengajuan' => $draftStatusId,
+            'keterangan_user'     => 'Pengajuan ulang setelah ditolak (ref: #' . $pengajuanLama->id . ')',
+            'keterangan_penolakan'=> null,
+        ]);
+
+        // Catat riwayat awal di pengajuan baru
+        RiwayatPengajuan::create([
+            'id_pengajuan'        => $pengajuanBaru->id,
+            'id_status_pengajuan' => $draftStatusId,
+            'catatan'             => 'Mahasiswa membuat pengajuan ulang setelah pengajuan #' . $pengajuanLama->id . ' ditolak.',
+            'keterangan_penolakan'=> null,
+            'created_by'          => 'Mahasiswa',
+        ]);
+
+        return back()->with('success', '✅ Pengajuan baru berhasil dibuat! Silakan upload ulang dokumen yang diperlukan.');
+    }
+
+    // --- FUNGSI: KIRIM PENGAJUAN ---
     public function ajukan(Request $request) {
         $request->validate([
             'id_pengajuan' => 'required',

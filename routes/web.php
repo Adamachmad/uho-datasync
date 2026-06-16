@@ -36,6 +36,9 @@ Route::middleware('pengaju.auth')->group(function () {
 
     // AKSI: Finalisasi Pengajuan
     Route::post('/ajukan-perubahan', [PengajuanController::class, 'ajukan'])->name('pengajuan.submit');
+
+    // AKSI: Ajukan Ulang setelah ditolak  ← TAMBAHKAN INI
+    Route::post('/ajukan-ulang', [PengajuanController::class, 'ajukanUlang'])->name('pengajuan.ajukan-ulang');
 });
 
 Route::prefix('admin')->group(function () {
