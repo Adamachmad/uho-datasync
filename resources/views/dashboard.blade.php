@@ -550,14 +550,14 @@
             <div class="pengajuan-grid">
                 @foreach($jenisPengajuan as $jp)
                 <div class="pengajuan-item {{ $pengajuanDraft && $pengajuanDraft->id_jenis_pengajuan == $jp->id ? 'selected' : '' }}"
-                     onclick="selectJenis({{ $jp->id }}, '{{ addslashes($jp->nama_jenis) }}')"
+                     onclick="selectJenis({{ $jp->id }}, '{{ addslashes($jp->nama_pengajuan) }}')"
                      id="pi-{{ $jp->id }}">
                     <span class="pi-selected-badge">✓ Dipilih</span>
                     <div class="pi-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                     </div>
-                    <div class="pi-name">{{ $jp->nama_jenis }}</div>
-                    <div class="pi-desc">{{ $jp->deskripsi ?? 'Pengajuan perubahan ' . strtolower($jp->nama_jenis) }}</div>
+                    <div class="pi-name">{{ $jp->nama_pengajuan }}</div>
+                    <div class="pi-desc">{{ $jp->deskripsi ?? 'Pengajuan perubahan ' . strtolower($jp->nama_pengajuan) }}</div>
                 </div>
                 @endforeach
             </div>
@@ -570,7 +570,7 @@
              style="{{ ($pengajuanDraft && $pengajuanDraft->id_jenis_pengajuan == $jp->id) ? '' : 'display:none;' }}">
 
             <div class="dokumen-header">
-                <h3>📄 Dokumen untuk: {{ $jp->nama_jenis }}</h3>
+                <h3>📄 Dokumen untuk: {{ $jp->nama_pengajuan }}</h3>
                 <p>Upload semua dokumen wajib (✱) sebelum mengirim pengajuan</p>
 
                 {{-- Progress bar --}}

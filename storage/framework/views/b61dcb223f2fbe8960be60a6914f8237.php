@@ -559,14 +559,14 @@
             <div class="pengajuan-grid">
                 <?php $__currentLoopData = $jenisPengajuan; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $jp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="pengajuan-item <?php echo e($pengajuanDraft && $pengajuanDraft->id_jenis_pengajuan == $jp->id ? 'selected' : ''); ?>"
-                     onclick="selectJenis(<?php echo e($jp->id); ?>, '<?php echo e(addslashes($jp->nama_jenis)); ?>')"
+                     onclick="selectJenis(<?php echo e($jp->id); ?>, '<?php echo e(addslashes($jp->nama_pengajuan)); ?>')"
                      id="pi-<?php echo e($jp->id); ?>">
                     <span class="pi-selected-badge">✓ Dipilih</span>
                     <div class="pi-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                     </div>
-                    <div class="pi-name"><?php echo e($jp->nama_jenis); ?></div>
-                    <div class="pi-desc"><?php echo e($jp->deskripsi ?? 'Pengajuan perubahan ' . strtolower($jp->nama_jenis)); ?></div>
+                    <div class="pi-name"><?php echo e($jp->nama_pengajuan); ?></div>
+                    <div class="pi-desc"><?php echo e($jp->deskripsi ?? 'Pengajuan perubahan ' . strtolower($jp->nama_pengajuan)); ?></div>
                 </div>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
@@ -579,7 +579,7 @@
              style="<?php echo e(($pengajuanDraft && $pengajuanDraft->id_jenis_pengajuan == $jp->id) ? '' : 'display:none;'); ?>">
 
             <div class="dokumen-header">
-                <h3>📄 Dokumen untuk: <?php echo e($jp->nama_jenis); ?></h3>
+                <h3>📄 Dokumen untuk: <?php echo e($jp->nama_pengajuan); ?></h3>
                 <p>Upload semua dokumen wajib (✱) sebelum mengirim pengajuan</p>
 
                 
